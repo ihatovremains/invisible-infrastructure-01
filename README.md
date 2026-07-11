@@ -82,4 +82,4 @@ gh api repos/{owner}/invisible-infrastructure-01/pages -X POST \
 
 ## 登場する名前・数値について
 
-人物・会社・数値(レイテンシ、trace ID、ref番号)はすべて架空です。実在の顧客名・案件情報は含まれていません。作中人物は "Tak Suzuki"(架空)、制作クレジットは "Taka Suzuki"。
+人物・会社・数値(レイテンシ、trace ID、ref番号)はすべて架空です。実在の顧客名・案件情報は含まれていません。作中人物は "Tak Suzuki"(架空)、制作クレジットは "Takaaki Suzuki"。
