@@ -1,85 +1,91 @@
-# Invisible Infrastructure · Ep. 01
+# Invisible Infrastructure · Episode 01
 
-**"A customer is ready to sign — but asks for net-60. Can AI answer safely?"**
+## What actually happens after you press Send?
 
-企業環境でユーザーの質問がどう処理されていくか(認証 → ガードレール → RAG → API呼び出し → 人の承認 → 監査ログ → 応答)を、**1つのrequest packetが権限・根拠・承認を獲得しながら移動していく**約49秒の自動再生モーションで可視化する単一ページのプロトタイプ。LinkedIn投稿用の画面収録を想定。
+[Launch the interactive demo](https://ihatovremains.github.io/invisible-infrastructure-01/) · [View the source](https://github.com/ihatovremains/invisible-infrastructure-01)
 
-## 仕組み(v2)
+[![An enterprise AI request moving through evidence and human approval](assets/readme-hero.png)](https://ihatovremains.github.io/invisible-infrastructure-01/)
 
-- 9枚のフル画面パネルを横一列に並べ、**カメラ(worldのtranslateX)が左→右へパン**して移動する
-- 画面に固定された **request packet カード**が全シーンを通して存在し続け、各ステーションで状態チップが押されていく(Identity verified → Data scopes granted → Needs human approval(amber)→ 3 sources attached → Payment record: clean → Finance approved → trace ID)
-- **Needs human approvalのアンバーチップは、承認時に 3 sources attached と Payment record の下へ移動し、その後 Finance approved としてグリーンへ変化する**(判断根拠の下に承認が並ぶ)。シーン間を直接ジャンプした場合も `buildPacket()` が同じ順序で再構築する
-- packetの状態はシーン番号から決定論的に再構築されるため、`←` `→` でどこへ飛んでも破綻しない
-- 人物は3か所だけ: 冒頭(顧客とSales Ops担当者)、Approval(Finance Controller)、Response(冒頭の担当者に回答が戻る)。ミニマルな線画SVG
-- メインコピーはビジネス語彙、技術情報(Okta/MFA/embedding/APIパス/trace)は各カード下部の小さなmono脚注
+A customer is ready to sign—but asks for net-60 payment terms.
 
-## 実行
+The interesting question is not whether an AI can draft a reply. It is whether the surrounding system can establish who is asking, what it may read, which facts are missing, when a human must decide, and how the result can be audited.
 
-外部依存ゼロの単一 `index.html`。ブラウザで開くだけで自動再生。
+I created this interactive motion piece to turn that invisible enterprise workflow into a story a non-specialist can follow in under a minute. One persistent request packet travels through seven checkpoints and visibly accumulates identity, permissions, evidence, verification, approval, and an audit trace.
 
-```bash
-open index.html
-# または
-python3 -m http.server 8000   # http://localhost:8000
-```
+**Role:** Concept, information architecture, UX/UI, motion design, front-end implementation, deterministic video rendering, and QA.
 
-## 操作
+## The design challenge
 
-| キー / ボタン | 動作 |
+Enterprise AI diagrams often become technically accurate but difficult to understand—or visually simple but misleading. The goal was to preserve the accountability model while making the experience readable without specialist knowledge.
+
+Business meaning stays in the foreground. Technical detail remains available as secondary notation.
+
+## One request, seven checkpoints
+
+| Checkpoint | Question made visible | What the request gains |
+|---|---|---|
+| Identity | Who is asking? | Verified identity and data scopes |
+| Guardrails | Is this safe to answer? | A human-approval requirement |
+| Retrieval | What does the company know? | Three cited sources |
+| Verification | What is still missing? | A verified finance record |
+| Approval | Who has authority to decide? | Finance approval |
+| Audit | Can the decision be replayed? | An immutable trace |
+| Response | What can safely return to the user? | A grounded, approved answer |
+
+## Key design decisions
+
+- **One persistent mental model.** The request packet remains visible across the journey instead of becoming seven disconnected screens.
+- **Progressive disclosure.** Plain business language carries the story; implementation details sit in quiet technical footnotes.
+- **Human authority as a state change.** Approval is not merely described—the amber risk flag moves beneath its evidence and becomes a verified approval.
+- **Deterministic scene state.** Packet state is reconstructed from the scene index, so replaying and stepping through the experience remains consistent.
+- **Two presentation modes.** The same source supports an interactive desktop experience and a 1080×1350 social-video composition.
+
+## Build and quality
+
+| Layer | Implementation |
 |---|---|
-| `Space` | 一時停止 / 再開 |
-| `←` `→` | 前 / 次のシーンへ(停止中は完成状態の静止画になる) |
-| `R` | 最初からリプレイ |
-| `F` | 現在シーンの演出を一括完了(静止画キャプチャ用) |
-| `S` | **social mode** 切替(下記) |
-| マウス静止 2.6秒 | コントロールとヒントが自動フェード |
+| Interactive experience | One dependency-free `index.html` using HTML, CSS, JavaScript, and inline SVG |
+| Motion system | Nine horizontally arranged scenes, a lightweight timeline engine, and CSS transforms |
+| Video rendering | Playwright and Chromium driven by a controlled virtual timeline at 30 fps |
+| Image pipeline | 1,572 lossless frames rendered at 2160×2700 and downsampled with Lanczos |
+| Delivery | 52.4-second H.264 High master at 1080×1350 |
+| QA | Clean opening, continuous camera motion, hidden capture UI, exact credit, and a 2.5-second completed closing hold |
 
-## Social mode(1080×1350 · 4:5 縦型録画)
+## Run locally
 
-`<body>` に `.social-mode` を付けると4:5録画向けに最適化されます。切替方法は3つ: `S`キー / URLに `?social` / コンソールで `journey.social(true)`。
-
-- 見出し・キャプション・カード本文を約25%拡大、packetを312pxに拡大
-- 技術脚注(mono)非表示、監査ログはビジネスサマリー表示に切替
-- Replayボタン非表示、代わりに "Interactive demo + source in comments" を表示
-- 16:9のライブHTML表示とキーボード操作はそのまま維持
-
-コンソール: `journey.goto(n)` / `journey.pause()` / `journey.replay()` など。
-
-## 収録のコツ
-
-1. ブラウザを全画面(1920×1080以上、できれば4K)にし、マウスを画面外へ
-2. `R` でタイトルからクリーン再生(全体 約49秒)
-3. 特定シーンの録り直しは `←` `→` で頭出し
-4. タブが非表示だと再生が止まる(ブラウザ標準挙動)。収録中は常に前面に
-5. `prefers-reduced-motion` は収録マシンでは無効にしておく
-
-## タイムライン(約49秒)
-
-| # | 時間 | シーン | 見せ場 | Packetへの追加 |
-|---|---|---|---|---|
-| 0 | 0:00–0:05 | Opening | 人物+問題提起→質問タイプ→Send push-in | packet誕生 |
-| 1 | 0:05–0:10 | Identity | 平易な本人確認+mono脚注 | Identity verified / Data scopes granted |
-| 2 | 0:10–0:16 | Guardrails | 金融条件に「人のサインオフ」フラグ | Needs human approval (amber) |
-| 3 | 0:16–0:20 | Retrieval | 文書カードがpacketに吸収→0.6秒で次へ | 3 sources attached |
-| 4 | 0:20–0:26 | Verification | known/missing→財務システム照会 | Payment record: clean · rating A |
-| 5 | 0:26–0:33 | Approval | 3項目を0.7秒間隔で確認→承認。amberチップが根拠の下へ移動してからgreen化 | Finance approved |
-| 6 | 0:33–0:38 | Audit | 監査ログ書き込み(social時はビジネスサマリー) | trace 7f3a-90d1-c21e |
-| 7 | 0:38–0:45 | Response | packet納品→2段構成の回答、完成状態を約2.8秒保持 | (納品・消滅) |
-| 8 | 0:45– | Closing | 統計→"It's a system." + 制作クレジット | — |
-
-数値は全シーンで整合(機械1.7s / 人間11.8s / 7チェックポイント / 3出典)。
-
-## GitHub Pages 公開
+Open `index.html` directly, or serve the directory:
 
 ```bash
-cd invisible-ai-journey
-git init && git add . && git commit -m "Ep. 01 — After you press Send"
-gh repo create invisible-infrastructure-01 --public --source=. --push
-gh api repos/{owner}/invisible-infrastructure-01/pages -X POST \
-  -f 'source[branch]=main' -f 'source[path]=/'
-# → https://<owner>.github.io/invisible-infrastructure-01/
+python3 -m http.server 8000
 ```
 
-## 登場する名前・数値について
+Then visit `http://localhost:8000`.
 
-人物・会社・数値(レイテンシ、trace ID、ref番号)はすべて架空です。実在の顧客名・案件情報は含まれていません。作中人物は "Tak Suzuki"(架空)、制作クレジットは "Takaaki Suzuki"。
+Controls: `R` replay · `Space` pause/play · `←` `→` move between scenes · `S` social mode.
+
+<details>
+<summary>Deterministic video workflow</summary>
+
+Requires Node.js, Playwright, Chromium, FFmpeg, and ffprobe. Video verification additionally uses Python, OpenCV, NumPy, and Pillow.
+
+```bash
+npm install
+./render-video.sh --smoke --clean
+./render-video.sh --clean
+python3 -m pip install -r requirements-qa.txt
+python3 verify-video.py
+```
+
+</details>
+
+## About the scenario
+
+All people, organizations, contracts, policies, endpoints, identifiers, and timing values shown here are fictional. Product names are used only as illustrative examples.
+
+This is a conceptual visualization—not a reference architecture, compliance claim, or recording of a production system.
+
+## License
+
+Released under the [MIT License](LICENSE).
+
+© 2026 Takaaki Suzuki
