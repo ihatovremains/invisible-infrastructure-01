@@ -1,0 +1,17 @@
+.DS_Store
+.claude/
+node_modules/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Generated capture and QA artifacts
+/render/
+/render-smoke/
+
+# Local video masters and diagnostics
+/*.mp4
+
+# Private production handoff notes
+/docs/production-notes-ja.md
+/LINKEDIN_LAUNCH_KIT.md
